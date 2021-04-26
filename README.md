@@ -18,7 +18,8 @@ In your theme include the tracker as an additional node in the head on each page
 ```swift
 HTML(
     ...
-    .head(for: ..., on: context.site, stylesheetPaths: ..., additionalNode: .ackeeTracker()),
+    .ackeeHead(for: ..., on: context.site),
     .body(...)
 )
 ```
+Or include `.ackeeTracker()` manually in a `HTML.HeadContext`.  

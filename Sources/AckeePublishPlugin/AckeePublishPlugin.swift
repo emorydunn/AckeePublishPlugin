@@ -54,7 +54,7 @@ public struct TrackerConfig {
     
 }
 
-extension Node where Context == HTML.HeadContext {
+public extension Node where Context == HTML.HeadContext {
     
     static func ackeeTracker(_ config: TrackerConfig? = TrackerConfig.shared) -> Node {
         guard let config = config else { return .empty }
@@ -65,7 +65,7 @@ extension Node where Context == HTML.HeadContext {
     
 }
 
-extension Node where Context == HTML.DocumentContext {
+public extension Node where Context == HTML.DocumentContext {
     
     /// Add an HTML `<head>` tag within the current context, based
     /// on inferred information from the current location and `Website`

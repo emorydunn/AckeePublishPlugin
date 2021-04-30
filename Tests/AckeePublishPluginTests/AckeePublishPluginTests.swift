@@ -30,6 +30,34 @@ final class AckeePublishPluginTests: XCTestCase {
         XCTAssertEqual(config.ackeeTracker().render(), trackerHTML)
         
     }
+    
+    func testEvent() throws {
+        let config = TrackerConfig(
+            server: URL(string: "https://analytics.example.com")!,
+            domainID: "test-event-id"
+        )
+        
+        let trackerHTML = """
+        <!DOCTYPE html>
+        <html>
+            <body>
+                <script src="https://analytics.example.com/tracker.js"></script>
+                <script>document.querySelector('#download').addEventListener('click', () => {
+                ackeeTracker.create('https://analytics.example.com').action('test-event-id', { key: 'Click', value: '1' })
+            })</script>
+            </body>
+        </html>
+        """
+        
+        let html = HTML(
+            .body(
+                .ackeeSetup(config),
+                .ackeeEvent(selector: "#download", eventID: "test-event-id", payload: "{ key: 'Click', value: '1' }")
+            )
+        )
+        
+        XCTAssertEqual(html.render(indentedBy: .spaces(4)), trackerHTML)
+    }
 
     static var allTests = [
         ("testAutoTrackerURL", testAutoTrackerURL),

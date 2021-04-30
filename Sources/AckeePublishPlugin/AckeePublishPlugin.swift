@@ -52,75 +52,24 @@ public struct TrackerConfig {
         )
     }
     
-}
-
-public extension Node where Context == HTML.HeadContext {
-    
-    static func ackeeTracker(_ config: TrackerConfig? = TrackerConfig.shared) -> Node {
-        guard let config = config else { return .empty }
-        
-        return config.ackeeTracker()
-        
+    func ackeeSetup() -> Node<HTML.BodyContext> {
+        .script(.src(script.absoluteString))
     }
     
-}
-
-public extension Node where Context == HTML.DocumentContext {
+    func manualTracker() -> Node<HTML.BodyContext> {
+        .script(.raw("ackeeTracker.create('\(server.absoluteString)').record('\(domainID)')"))
+    }
     
-    /// Add an HTML `<head>` tag within the current context, based
-    /// on inferred information from the current location and `Website`
-    /// implementation.
-    /// - parameter location: The location to generate a `<head>` tag for.
-    /// - parameter site: The website on which the location is located.
-    /// - parameter titleSeparator: Any string to use to separate the location's
-    ///   title from the name of the website. Default: `" | "`.
-    /// - parameter stylesheetPaths: The paths to any stylesheets to add to
-    ///   the resulting HTML page. Default: `styles.css`.
-    /// - parameter rssFeedPath: The path to any RSS feed to associate with the
-    ///   resulting HTML page. Default: `feed.rss`.
-    /// - parameter rssFeedTitle: An optional title for the page's RSS feed.
-    static func ackeeHead<T: Website>(
-        for location: Location,
-        on site: T,
-        titleSeparator: String = " | ",
-        stylesheetPaths: [Path] = ["/styles.css"],
-        rssFeedPath: Path? = .defaultForRSSFeed,
-        rssFeedTitle: String? = nil
-    ) -> Node {
-        var title = location.title
+    func event<Event: Encodable>(eventID: String, payload: Event, encoder: JSONEncoder = JSONEncoder()) throws -> String {
         
-        if title.isEmpty {
-            title = site.name
-        } else {
-            title.append(titleSeparator + site.name)
-        }
+        let data = try encoder.encode(payload)
+        let dataString = String(data: data, encoding: .utf8)!
         
-        var description = location.description
-        
-        if description.isEmpty {
-            description = site.description
-        }
-        
-        return .head(
-            .encoding(.utf8),
-            .siteName(site.name),
-            .url(site.url(for: location)),
-            .title(title),
-            .description(description),
-            .twitterCardType(location.imagePath == nil ? .summary : .summaryLargeImage),
-            .forEach(stylesheetPaths, { .stylesheet($0) }),
-            .viewport(.accordingToDevice),
-            .unwrap(site.favicon, { .favicon($0) }),
-            .unwrap(rssFeedPath, { path in
-                let title = rssFeedTitle ?? "Subscribe to \(site.name)"
-                return .rssFeedLink(path.absoluteString, title: title)
-            }),
-            .unwrap(location.imagePath ?? site.imagePath, { path in
-                let url = site.url(for: path)
-                return .socialImageLink(url)
-            }),
-            .ackeeTracker()
-        )
+        return event(eventID: eventID, payload: dataString)
+    }
+    
+    func event(eventID: String, payload: String) -> String {
+        return "ackeeTracker.create('\(server.absoluteString)').action('\(eventID)', \(payload))"
     }
     
 }
